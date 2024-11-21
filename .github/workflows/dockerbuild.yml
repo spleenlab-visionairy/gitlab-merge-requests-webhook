@@ -42,4 +42,4 @@ jobs:
         context: .
         platforms: linux/amd64,linux/arm64/v8
         push: true
-        tags: ghcr.io/Spleenlab-GmbH/gitlab-merge-requests-webhook:${{ steps.docker-tag.outputs.tag }}
+        tags: ghcr.io/spleenlab/gitlab-merge-requests-webhook:${{ steps.docker-tag.outputs.tag }}
