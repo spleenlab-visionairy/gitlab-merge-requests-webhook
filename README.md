@@ -36,4 +36,3 @@ This is only for testing purpose - feel free to configure the hook on project le
 ## remarks
 
 This repository is to be understood as an example, for productive operation the image should be hardened and Flask should be executed in productive mode. In addition, the use of system hooks has a global effect. A more fine-grained configuration is recommended.
-
