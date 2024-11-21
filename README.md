@@ -6,14 +6,14 @@ add automatic merge request thread information using a git commit message
 
 **requirements:**
 
-* use merge request thread URLs like 'http://gitlab.INTERNAL:8080/group1/project1/-/merge_requests/123#note_54321' in git commit message
+* use merge request thread/discussion URLs like 'http://gitlab.INTERNAL:8080/group1/project1/-/merge_requests/123#note_54321' in git commit message
 * use '@cooluser' mentions in git commit messages
 
 **output**:
 
-* will create a automatic thread comments like '#USER# added a patchset #LINK2COMMIT# related to this thread' (can be changed by ENV variable, multiple threads are supported)
-* will create a new top-level thread if commit is pushed to branch with existing merge request, but without note URL in it (this is new code and needs to be reviewed, so a new thread will enforce this)
-* will add all user mentions to the thread comment, so they will get informed about it
+* will create a automatic thread/discussion comments like '#USER# added a patchset #LINK2COMMIT# related to this thread' (can be changed by ENV variable, multiple threads are supported)
+* will create a new top-level thread/discussion if commit is pushed to branch with existing merge request, but without note URL in it (this is new code and needs to be reviewed, so a new thread will enforce this)
+* will add all user mentions to the thread/discussion comment, so they will get informed about it
 
 ## functional background
 
