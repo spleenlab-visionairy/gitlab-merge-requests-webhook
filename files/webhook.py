@@ -127,18 +127,18 @@ def hook():
                 api_url = gitlab_url + 'api/v4/projects?search=' + note_repo_name
                 response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
                 found_repos = response.json()
-                project_id = 0
+                project_id = ''
                 logging.debug('found_repos: ' + str(len(found_repos)))
                 for found_repo in found_repos:
                     path_with_namespace = found_repo['path_with_namespace']
 
                     # there could be projects with same name, we need to check the path, too
                     if path_with_namespace in note_group_name:
-                        project_id = found_repo['id']
+                        project_id = str(found_repo['id'])
                         break
 
                 # add comment to found project
-                if project_id > 0:
+                if len(project_id) > 0:
                     diff_link = build_diff_link(web_url, note_merge_request_id, commitid)
                     extend_thread(user, diff_link, note_merge_request_id, mentions, gitlab_url, project_id,
                                   discussion_id)
