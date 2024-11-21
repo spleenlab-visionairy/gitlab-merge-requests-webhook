@@ -119,29 +119,51 @@ def hook():
                 logging.debug('note_repo_name: ' + note_repo_name)
                 note_merge_request_id = note_url_split[-1].split('#')[0]
                 logging.debug('note_merge_request_id: ' + note_merge_request_id)
-                discussion_id = note_url_split[-1].split('#')[1].split('_')[1]
-                logging.debug('discussion_id: ' + discussion_id)
+                note_id = note_url_split[-1].split('#')[1].split('_')[1]
+                logging.debug('note_id: ' + note_id)
 
                 # get project_id from repo_name
                 # /api/v4/projects?search=test
                 api_url = gitlab_url + 'api/v4/projects?search=' + note_repo_name
                 response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
                 found_repos = response.json()
-                project_id = ''
+                note_project_id = ''
                 logging.debug('found_repos: ' + str(len(found_repos)))
                 for found_repo in found_repos:
                     path_with_namespace = found_repo['path_with_namespace']
 
                     # there could be projects with same name, we need to check the path, too
                     if path_with_namespace in note_group_name:
-                        project_id = str(found_repo['id'])
+                        note_project_id = str(found_repo['id'])
                         break
 
                 # add comment to found project
-                if len(project_id) > 0:
-                    diff_link = build_diff_link(web_url, note_merge_request_id, commitid)
-                    extend_thread(user, diff_link, note_merge_request_id, mentions, gitlab_url, project_id,
-                                  discussion_id)
+                if len(note_project_id) > 0:
+
+                    # we need to get the discussion_id for the note_id
+                    # /api/v4/projects/PROJECTID/merge_requests/MERGEREQUESTID/discussions
+                    api_url = gitlab_url + 'api/v4/projects/' + note_project_id
+                    api_url += '/merge_requests/' + note_merge_request_id + '/discussions'
+                    response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
+                    note_discussions = response.json()
+                    discussion_id = ''
+                    for note_discussion in note_discussions:
+                        found_discussion_id = False
+                        for note in note_discussion['notes']:
+                            if note_id in note['id']:
+                                discussion_id = note_discussion['id']
+                                found_discussion_id = True
+                                break
+                        if found_discussion_id:
+                            break
+
+                    # now we have everything to add a comment to discussion
+                    if len(discussion_id) > 0:
+                        diff_link = build_diff_link(web_url, note_merge_request_id, commitid)
+                        extend_thread(user, diff_link, note_merge_request_id, mentions, gitlab_url, note_project_id,
+                                      discussion_id)
+                    else:
+                        logging.warning('no discussion found for note: ' + note_id)
                 else:
                     logging.warning('no project found for: ' + note_repo_name)
 

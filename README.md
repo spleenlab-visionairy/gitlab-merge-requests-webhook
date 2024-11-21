@@ -6,8 +6,10 @@ add automatic merge request thread information using a git commit message
 
 **requirements:**
 
-* use merge request thread/discussion URLs like 'http://gitlab.INTERNAL:8080/group1/project1/-/merge_requests/123#note_54321' in git commit message
-* use '@cooluser' mentions in git commit messages
+use merge request thread/discussion URLs like 'http://gitlab.INTERNAL:8080/group1/project1/-/merge_requests/123#note_54321' in git commit message
+(can be copied from GUI, available when hovering over the age of a comment within a discussion)
+
+use '@cooluser' mentions in git commit messages
 
 **output**:
 
