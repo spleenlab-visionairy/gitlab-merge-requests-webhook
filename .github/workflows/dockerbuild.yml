@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: spleenlab/gitlab-merge-requests-webhook
+  IMAGE_NAME: spleenlab-visionairy/gitlab-merge-requests-webhook
 
 jobs:
   build:
@@ -52,4 +52,3 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-          
