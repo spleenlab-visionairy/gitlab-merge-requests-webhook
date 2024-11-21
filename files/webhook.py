@@ -150,7 +150,7 @@ def hook():
                     for note_discussion in note_discussions:
                         found_discussion_id = False
                         for note in note_discussion['notes']:
-                            if note_id in note['id']:
+                            if note_id in str(note['id']):
                                 discussion_id = note_discussion['id']
                                 found_discussion_id = True
                                 break
