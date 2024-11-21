@@ -23,13 +23,19 @@ We migrated our repositories from Gerrit and tried to achieve a similar usabilit
 
 ## usage
 
-1. deploy webhook adding a github token to be used with Gitlab API (see packages on the right side)
+#### 1. deploy webhook adding a github token to be used with Gitlab API (see packages on the right side)
 
 ```
-docker run -e PORT=8080 -e GITLAB_TOKEN=1234567890 -e THREAD_MESSAGE="#USER# added a patchset #LINK2COMMIT# related to this thread" -e NEW_THREAD_MESSAGE="#USER# added a patchset #LINK2COMMIT# related to no thread" ghcr.io/Spleenlab-GmbH/gitlab-merge-requests-webhook:latest
+docker run -e PORT=8080 -e GITLAB_TOKEN=1234567890 ghcr.io/spleenlab-visionairy/gitlab-merge-requests-webhook:latest
 ```
 
-2. configure in Gitlab
+or
+
+```
+docker run -e PORT=8080 -e GITLAB_TOKEN=1234567890 -e THREAD_MESSAGE="#USER# added a patchset #LINK2COMMIT# related to this thread" -e NEW_THREAD_MESSAGE="#USER# added a patchset #LINK2COMMIT# related to no thread" ghcr.io/spleenlab-visionairy/gitlab-merge-requests-webhook:latest
+```
+
+#### 2. configure in Gitlab
 
 Admin --> System hooks --> URL: http://hostname:8080/hook --> Execute for "Push events"
 
