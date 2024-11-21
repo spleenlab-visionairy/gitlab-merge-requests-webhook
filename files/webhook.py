@@ -107,9 +107,9 @@ def hook():
                 # http://gitlab.INTERNAL:8080/group1/groupX/.../project1/-/merge_requests/123#note_54321
 
                 note_url_short = note_url.replace(gitlab_url, '')
-                note_url_split = note_url_short.split('-')
+                note_url_split = note_url_short.split('/-/')
                 logging.debug(note_url_split)
-                note_group_name = note_url_split[0][:-1]
+                note_group_name = note_url_split[0]
                 logging.debug('note_group_name: ' + note_group_name)
 
                 # note_repo_name, note_merge_request_id and note_id read from the end of the url
@@ -128,6 +128,7 @@ def hook():
                 response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
                 found_repos = response.json()
                 project_id = 0
+                logging.debug('found_repos: ' + str(len(found_repos)))
                 for found_repo in found_repos:
                     path_with_namespace = found_repo['path_with_namespace']
 
