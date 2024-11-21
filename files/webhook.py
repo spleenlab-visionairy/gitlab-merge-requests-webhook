@@ -122,7 +122,7 @@ def hook():
                 note_id = note_url_split[-1].split('#')[1].split('_')[1]
                 logging.debug('note_id: ' + note_id)
 
-                # get project_id from repo_name
+                # get project_id from repo_name (alternative: read from note id, should be available)
                 # /api/v4/projects?search=test
                 api_url = gitlab_url + 'api/v4/projects?search=' + note_repo_name
                 response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
