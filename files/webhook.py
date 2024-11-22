@@ -17,8 +17,8 @@ app = flask.Flask(__name__)
 
 # log configuration, please use DEBUG for maintenance
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
-                    # level=logging.INFO,
-                    level=logging.DEBUG,
+                    level=logging.INFO,
+                    # level=logging.DEBUG,
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 # ENV variables
