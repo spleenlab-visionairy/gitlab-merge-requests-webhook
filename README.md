@@ -23,7 +23,7 @@ We migrated our repositories from Gerrit and tried to achieve a similar usabilit
 
 ## usage
 
-#### 1. deploy webhook adding a github token to be used with Gitlab API (see packages on the right side)
+#### 1. deploy webhook adding a github token to be used with Gitlab API
 
 ```
 docker run -e PORT=8080 -e GITLAB_TOKEN=1234567890 ghcr.io/spleenlab-visionairy/gitlab-merge-requests-webhook:latest
