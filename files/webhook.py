@@ -84,7 +84,7 @@ def hook():
             branch_merge_requests = response.json()
             merge_request_ids_to_check = []
             for branch_merge_request in branch_merge_requests:
-                merge_request_ids_to_check.append(str(branch_merge_request['id']))
+                merge_request_ids_to_check.append(str(branch_merge_request['iid']))
 
             # validate merge requests thread-related URLs
             for merge_request_id in merge_request_ids_to_check:
