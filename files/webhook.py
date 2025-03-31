@@ -67,7 +67,7 @@ def hook():
 
             # patterns to search
             merge_request_url_pattern = re.escape(gitlab_url) + r'[a-zA-Z0-9-_/]*/merge_requests/[0-9]*#note_[0-9]*'
-            mention_pattern = r'@[a-zA-Z0-9]*'
+            mention_pattern = r' @[a-zA-Z0-9]*'
 
             # find thread-related URLs and mentioned users
             note_urls = []
