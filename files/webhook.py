@@ -16,9 +16,9 @@ import urllib.parse
 app = flask.Flask(__name__)
 
 # log configuration, please use DEBUG for maintenance
+LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
-                    level=logging.INFO,
-                    # level=logging.DEBUG,
+                    level=LOGLEVEL,
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 # ENV variables
