@@ -144,19 +144,26 @@ def hook():
                     # we need to get the discussion_id for the note_id
                     # /api/v4/projects/PROJECTID/merge_requests/MERGEREQUESTID/discussions
                     api_url = gitlab_url + 'api/v4/projects/' + note_project_id
-                    api_url += '/merge_requests/' + note_merge_request_id + '/discussions'
-                    response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
-                    note_discussions = response.json()
-                    discussion_id = ''
-                    for note_discussion in note_discussions:
-                        found_discussion_id = False
-                        for note in note_discussion['notes']:
-                            if note_id in str(note['id']):
-                                discussion_id = note_discussion['id']
-                                found_discussion_id = True
+                    api_url += '/merge_requests/' + note_merge_request_id + '/discussions?per_page=10'
+                    page_number = 0
+                    discussion_counter = 10
+                    found_discussion_id = False
+                    while discussion_counter == 10 and not found_discussion_id:
+                        page_number += 1
+                        discussion_counter = 0
+                        response = requests.get(api_url + '&page=' + str(page_number),
+                                                headers={"PRIVATE-TOKEN": gitlab_api_token})
+                        note_discussions = response.json()
+                        discussion_id = ''
+                        for note_discussion in note_discussions:
+                            discussion_counter += 1
+                            for note in note_discussion['notes']:
+                                if note_id in str(note['id']):
+                                    discussion_id = note_discussion['id']
+                                    found_discussion_id = True
+                                    break
+                            if found_discussion_id:
                                 break
-                        if found_discussion_id:
-                            break
 
                     # now we have everything to add a comment to discussion
                     if len(discussion_id) > 0:
