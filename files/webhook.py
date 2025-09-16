@@ -169,7 +169,7 @@ def hook():
                     if len(discussion_id) > 0:
                         diff_link = build_diff_link(web_url, note_merge_request_id, commitid)
                         extend_thread(user, diff_link, note_merge_request_id, mentions, gitlab_url, note_project_id,
-                                      discussion_id)
+                                      discussion_id, branch_name)
                     else:
                         logging.warning('no discussion found for note: ' + note_id)
                 else:
@@ -180,7 +180,7 @@ def hook():
     return flask.Response("{'spl-gitlab-webhook':'ok'}", status=200, mimetype='application/json')
 
 
-def extend_thread(user, diff_link, merge_request_id, mentions, gitlab_url, project_id, discussion_id):
+def extend_thread(user, diff_link, merge_request_id, mentions, gitlab_url, project_id, discussion_id, branch_name):
     """extend a thread in merge request
 
     Args:
@@ -191,7 +191,24 @@ def extend_thread(user, diff_link, merge_request_id, mentions, gitlab_url, proje
         gitlab_url (str): Gitlab instance URL
         project_id (str): ID of the project
         discussion_id (str): ID of the discussion / thread
+        branch_name (str): name of the branch that received the commit
     """
+
+    # fetch MR details to check source branch
+    api_url = gitlab_url + 'api/v4/projects/' + project_id + '/merge_requests/' + merge_request_id
+    response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
+    
+    if response.status_code != 200:
+        logging.warning(f'Failed to fetch MR details for MR {merge_request_id} in project {project_id}')
+        return
+    
+    mr_details = response.json()
+    mr_source_branch = mr_details.get('source_branch', '')
+    
+    # only post if the commit was pushed to the MR's source branch
+    if mr_source_branch != branch_name:
+        logging.info(f'Skipping thread comment for MR {merge_request_id}: source branch "{mr_source_branch}" does not match pushed branch "{branch_name}"')
+        return
 
     # create the message
     result_message = build_thread_message(thread_message, user, diff_link, mentions)
