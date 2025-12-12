@@ -23,7 +23,11 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
 
 # ENV variables
 gitlab_api_token = os.getenv('GITLAB_TOKEN')
-ssl_verify = os.getenv('SSL_VERIFY', True)
+ssl_verify_variable = os.getenv('SSL_VERIFY', 1)
+ssl_verify = True
+if ssl_verify_variable != 1:
+    logging.warning('DEACTIVATE SSL VERIFICATION')
+    ssl_verify = False
 thread_message = os.getenv('THREAD_MESSAGE', '#USER# added a patchset #LINK2COMMIT# related to this thread')
 new_thread_message = os.getenv('NEW_THREAD_MESSAGE', '#USER# added a patchset #LINK2COMMIT# related to no thread')
 
