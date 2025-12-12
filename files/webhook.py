@@ -23,6 +23,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
 
 # ENV variables
 gitlab_api_token = os.getenv('GITLAB_TOKEN')
+ssl_verify = os.getenv('SSL_VERIFY', True)
 thread_message = os.getenv('THREAD_MESSAGE', '#USER# added a patchset #LINK2COMMIT# related to this thread')
 new_thread_message = os.getenv('NEW_THREAD_MESSAGE', '#USER# added a patchset #LINK2COMMIT# related to no thread')
 
@@ -81,7 +82,7 @@ def hook():
             # /api/v4/projects/PROJECTID/merge_requests?state=opened&source_branch=BRANCHNAME
             api_url = gitlab_url + 'api/v4/projects/' + project_id
             api_url += '/merge_requests?state=opened&source_branch=' + branch_name
-            response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
+            response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
             branch_merge_requests = response.json()
             merge_request_ids_to_check = []
             for branch_merge_request in branch_merge_requests:
@@ -126,7 +127,7 @@ def hook():
                 # get project_id from repo_name (alternative: read from note id, should be available)
                 # /api/v4/projects?search=test
                 api_url = gitlab_url + 'api/v4/projects?search=' + note_repo_name
-                response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
+                response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
                 found_repos = response.json()
                 note_project_id = ''
                 logging.debug('found_repos: ' + str(len(found_repos)))
@@ -152,7 +153,7 @@ def hook():
                         page_number += 1
                         discussion_counter = 0
                         response = requests.get(api_url + '&page=' + str(page_number),
-                                                headers={"PRIVATE-TOKEN": gitlab_api_token})
+                                                headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
                         note_discussions = response.json()
                         discussion_id = ''
                         for note_discussion in note_discussions:
@@ -199,7 +200,7 @@ def extend_thread(user, diff_link, merge_request_id, mentions, gitlab_url, proje
     # create and send post url
     api_url = gitlab_url + 'api/v4/projects/' + project_id + '/merge_requests/' + merge_request_id
     api_url += '/discussions/' + discussion_id + '/notes?body=' + urllib.parse.quote(result_message)
-    response = requests.post(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
+    response = requests.post(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
     logging.info(response.json())
 
 
@@ -221,7 +222,7 @@ def create_new_thread(user, diff_link, merge_request_id, mentions, gitlab_url, p
     # create and send post url
     api_url = gitlab_url + 'api/v4/projects/' + project_id + '/merge_requests/' + merge_request_id
     api_url += '/discussions?body=' + urllib.parse.quote(result_message)
-    response = requests.post(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token})
+    response = requests.post(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
     logging.info(response.json())
 
 
