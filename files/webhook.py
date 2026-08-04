@@ -32,6 +32,44 @@ thread_message = os.getenv('THREAD_MESSAGE', '#USER# added a patchset #LINK2COMM
 new_thread_message = os.getenv('NEW_THREAD_MESSAGE', '#USER# added a patchset #LINK2COMMIT# related to no thread')
 
 
+def get_gitlab_json(api_url, context, expected_type=list, params=None):
+    """Fetch JSON from GitLab and log unexpected responses instead of crashing."""
+
+    response = requests.get(api_url,
+                            headers={"PRIVATE-TOKEN": gitlab_api_token},
+                            verify=ssl_verify,
+                            params=params)
+
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = response.text
+
+    if response.ok and isinstance(payload, expected_type):
+        return payload
+
+    logging.error('GitLab API %s failed: status=%s body=%s', context, response.status_code, payload)
+    return None
+
+
+def post_gitlab(api_url, context):
+    """Send a POST to GitLab and log failures instead of raising follow-up errors."""
+
+    response = requests.post(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
+
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = response.text
+
+    if response.ok:
+        logging.info(payload)
+    else:
+        logging.error('GitLab API %s failed: status=%s body=%s', context, response.status_code, payload)
+
+    return response
+
+
 @app.route('/hook', methods=['POST'])
 def hook():
     """Gitlab webhook to react on events
@@ -84,10 +122,13 @@ def hook():
 
             # read assigned merge requests to branch (should be one)
             # /api/v4/projects/PROJECTID/merge_requests?state=opened&source_branch=BRANCHNAME
-            api_url = gitlab_url + 'api/v4/projects/' + project_id
-            api_url += '/merge_requests?state=opened&source_branch=' + branch_name
-            response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
-            branch_merge_requests = response.json()
+            api_url = gitlab_url + 'api/v4/projects/' + project_id + '/merge_requests'
+            branch_merge_requests = get_gitlab_json(api_url,
+                                                    'merge request lookup for branch ' + branch_name,
+                                                    params={'state': 'opened', 'source_branch': branch_name})
+            if branch_merge_requests is None:
+                continue
+
             merge_request_ids_to_check = []
             for branch_merge_request in branch_merge_requests:
                 merge_request_ids_to_check.append(str(branch_merge_request['iid']))
@@ -131,8 +172,10 @@ def hook():
                 # get project_id from repo_name (alternative: read from note id, should be available)
                 # /api/v4/projects?search=test
                 api_url = gitlab_url + 'api/v4/projects?search=' + note_repo_name
-                response = requests.get(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
-                found_repos = response.json()
+                found_repos = get_gitlab_json(api_url, 'project lookup for ' + note_repo_name)
+                if found_repos is None:
+                    continue
+
                 note_project_id = ''
                 logging.debug('found_repos: ' + str(len(found_repos)))
                 for found_repo in found_repos:
@@ -149,16 +192,19 @@ def hook():
                     # we need to get the discussion_id for the note_id
                     # /api/v4/projects/PROJECTID/merge_requests/MERGEREQUESTID/discussions
                     api_url = gitlab_url + 'api/v4/projects/' + note_project_id
-                    api_url += '/merge_requests/' + note_merge_request_id + '/discussions?per_page=10'
+                    api_url += '/merge_requests/' + note_merge_request_id + '/discussions'
                     page_number = 0
                     discussion_counter = 10
                     found_discussion_id = False
                     while discussion_counter == 10 and not found_discussion_id:
                         page_number += 1
                         discussion_counter = 0
-                        response = requests.get(api_url + '&page=' + str(page_number),
-                                                headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
-                        note_discussions = response.json()
+                        note_discussions = get_gitlab_json(api_url,
+                                                           'discussion lookup for merge request ' + note_merge_request_id,
+                                                           params={'per_page': 10, 'page': page_number})
+                        if note_discussions is None:
+                            break
+
                         discussion_id = ''
                         for note_discussion in note_discussions:
                             discussion_counter += 1
@@ -204,8 +250,7 @@ def extend_thread(user, diff_link, merge_request_id, mentions, gitlab_url, proje
     # create and send post url
     api_url = gitlab_url + 'api/v4/projects/' + project_id + '/merge_requests/' + merge_request_id
     api_url += '/discussions/' + discussion_id + '/notes?body=' + urllib.parse.quote(result_message)
-    response = requests.post(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
-    logging.info(response.json())
+    post_gitlab(api_url, 'extend thread for merge request ' + merge_request_id)
 
 
 def create_new_thread(user, diff_link, merge_request_id, mentions, gitlab_url, project_id):
@@ -226,8 +271,7 @@ def create_new_thread(user, diff_link, merge_request_id, mentions, gitlab_url, p
     # create and send post url
     api_url = gitlab_url + 'api/v4/projects/' + project_id + '/merge_requests/' + merge_request_id
     api_url += '/discussions?body=' + urllib.parse.quote(result_message)
-    response = requests.post(api_url, headers={"PRIVATE-TOKEN": gitlab_api_token}, verify=ssl_verify)
-    logging.info(response.json())
+    post_gitlab(api_url, 'create thread for merge request ' + merge_request_id)
 
 
 def build_thread_message(input_message, user, diff_link, mentions) -> str:
